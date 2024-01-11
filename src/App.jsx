@@ -1,18 +1,37 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import Pokemons from './components/Pokemons'
+import { CssBaseline } from '@mui/material'
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { Button } from "@mui/material"
 
 function App() {
 const [pokemons, setPokemons] = useState(null)
+const [dark, setDark] = useState(true)
+
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+  },
+});
 
 useEffect(() => {
   fetch('https://pokeapi.co/api/v2/pokemon')
   .then(res => res.json())
   .then(data => setPokemons(data))
 }, [])
+
  return (
     <>
+     <ThemeProvider theme={dark ? darkTheme : ""}>
+     <Button
+      variant="contained"
+      color="success"
+      onClick={() => setDark(dark => !dark)}
+      >CHANGE MODE</Button>
+    <CssBaseline enableColorScheme/>
     {pokemons ? <Pokemons pokemons={pokemons.results} /> : <p>loading...</p>}
+    </ThemeProvider>
     </>
   )
 }
