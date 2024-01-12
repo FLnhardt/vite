@@ -38,13 +38,15 @@ function App() {
   const darkTheme = createTheme({
     palette: {
       mode: 'dark',
-    },
+      }
+    })
+
+    const lightTheme = createTheme({
+      palette: {
+        mode: 'light',
+      },
   })
 
-  useEffect(() => {
-    console.log(pokemonsData)
-    console.log(pokemons)
-  }, [pokemons, pokemonsData])
 
   useEffect(() => {
     fetch("https://pokeapi.co/api/v2/pokemon")
@@ -57,7 +59,7 @@ function App() {
 
   return (
     <>
-      <ThemeProvider theme={dark ? darkTheme : ""}>
+      <ThemeProvider theme={dark ? darkTheme : lightTheme}>
         <Button
           variant="contained"
           onClick={() => setDark(dark => !dark)}
