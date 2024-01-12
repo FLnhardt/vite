@@ -1,37 +1,82 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import Pokemons from './components/Pokemons'
-import { CssBaseline } from '@mui/material'
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { Button } from "@mui/material"
+import { CssBaseline, Button } from '@mui/material'
+import { ThemeProvider, createTheme } from '@mui/material/styles'
 
 function App() {
-const [pokemons, setPokemons] = useState(null)
-const [dark, setDark] = useState(true)
+  const [pokemons, setPokemons] = useState(null) // pokemon array
+  const [pokemonsData, setPokemonsData] = useState(null) // fetch result: object with keys + pokemon array
+  const [dark, setDark] = useState(true)
+  const [isIntersecting, setIsIntersecting] = useState(false)
+  const ref = useRef()
 
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-  },
-});
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      setIsIntersecting(entry.isIntersecting)
+    })
 
-useEffect(() => {
-  fetch('https://pokeapi.co/api/v2/pokemon')
-  .then(res => res.json())
-  .then(data => setPokemons(data))
-}, [])
+    if (pokemonsData) {
+      observer.observe(ref.current)
+    }
 
- return (
+    return () => observer.disconnect() // clean-up function
+  }, [ref, pokemonsData])
+
+  useEffect(() => {
+    if (isIntersecting) {
+      fetch(pokemonsData.next)
+        .then(res => res.json())
+        .then(data => {
+          setPokemonsData(data)
+          setPokemons(currentData => [...currentData, ...data.results])
+        })
+      setIsIntersecting(false)
+    }
+  }, [isIntersecting, pokemonsData])
+
+  const darkTheme = createTheme({
+    palette: {
+      mode: 'dark',
+    },
+  })
+
+  useEffect(() => {
+    console.log(pokemonsData)
+    console.log(pokemons)
+  }, [pokemons, pokemonsData])
+
+  useEffect(() => {
+    fetch("https://pokeapi.co/api/v2/pokemon")
+      .then(res => res.json())
+      .then(data => {
+        setPokemonsData(data)
+        setPokemons(data.results)
+      })
+  }, [])
+
+  return (
     <>
-     <ThemeProvider theme={dark ? darkTheme : ""}>
-     <Button
-      variant="contained"
-      color="success"
-      onClick={() => setDark(dark => !dark)}
-      >CHANGE MODE</Button>
-    <CssBaseline enableColorScheme/>
-    {pokemons ? <Pokemons pokemons={pokemons.results} /> : <p>loading...</p>}
-    </ThemeProvider>
+      <ThemeProvider theme={dark ? darkTheme : ""}>
+        <Button
+          variant="contained"
+          onClick={() => setDark(dark => !dark)}
+        >change theme</Button>
+
+        <CssBaseline enableColorScheme />
+
+        {pokemons && <Pokemons pokemons={pokemons} />}
+
+        {pokemonsData?.next &&
+          <Button
+            ref={ref}
+            variant="contained"
+            onClick={() => {
+              console.log("fetch more pokemons")
+            }}
+          >loading</Button>
+        }
+      </ThemeProvider>
     </>
   )
 }
